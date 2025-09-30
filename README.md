@@ -1,8 +1,53 @@
 # User Data Management System
 
-MongoDBを使用したユーザーデータ管理システムです。バックエンドAPI（FastAPI）とWebフロントエンドを提供します。
+MongoDBを使用したユーザーデータ管理システムです。バックエンドAPI（FastAPI）とWebフロントエンドを提供します## 🔧 詳細な使用方法
 
-## 📋 必要な要件
+### Webアプリケーション機能
+
+#### 1. フロントエンド操作
+- **ユーザー追加**: 商品名と価格を入力して新規データを作成
+- **データ表示**: 登録されている全商品をカード形式で表示
+- **データ編集**: 各商品の編集ボタンから商品名・価格を変更
+- **データ削除**: 削除ボタンで不要なデータを削除（確認ダイアログ付き）
+- **リアルタイム更新**: データ変更後の自動リロード
+- **ヘルスチェック**: MongoDB接続状態をリアルタイム監視
+
+#### 2. API操作（開発者向け）
+```bash
+# 全ユーザー取得
+curl http://localhost:8000/api/users
+
+# 特定ユーザー取得
+curl http://localhost:8000/api/users/1
+
+# 新規ユーザー作成
+curl -X POST http://localhost:8000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"product": "新商品", "price": 5000.0}'
+
+# ユーザー更新
+curl -X PUT http://localhost:8000/api/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"product": "更新された商品", "price": 6000.0}'
+
+# ユーザー削除
+curl -X DELETE http://localhost:8000/api/users/1
+
+# ヘルスチェック
+curl http://localhost:8000/api/health
+```
+
+### 従来の方法（コマンドライン）
+
+#### 1. JSONファイル作成とMongoDB投入の一括実行
+```bash
+.venv/bin/python main.py
+```
+
+#### 2. 既存のJSONファイルのみをMongoDBに投入
+```bash
+.venv/bin/python mongodb_uploader.py
+```件
 
 - Python 3.7+
 - MongoDB サーバー
@@ -40,18 +85,59 @@ docker run --name mongodb-local -d -p 27017:27017 mongo:latest
 
 ```
 ld_json/
-├── main.py                 # メインスクリプト（JSONファイル作成 + MongoDB投入）
-├── mongodb_uploader.py     # MongoDB専用アップローダークラス
-├── start_mongodb.sh        # MongoDB起動スクリプト
-├── user_data_files/        # JSONファイル格納ディレクトリ
+├── main.py                    # サンプルデータ生成スクリプト
+├── mongodb_uploader.py        # MongoDB管理クラス
+├── api.py                     # FastAPI バックエンド
+├── test_mongodb_connection.py # 接続テスト
+├── setup.sh                  # セットアップスクリプト
+├── start_mongodb.sh          # MongoDB起動スクリプト  
+├── start_api.sh              # APIサーバー起動スクリプト
+├── requirements.txt          # 依存関係
+├── static/
+│   └── index.html            # フロントエンドUI
+├── user_data_files/          # JSONファイルストレージ
 │   ├── user_1.json
 │   ├── user_2.json
 │   ├── user_3.json
-│   └── user_4.json
+│   └── ... (12ファイル)
 └── README.md
 ```
 
-## 🔧 使用方法
+## � クイックスタート（推奨）
+
+### 1️⃣ セットアップ
+```bash
+# 自動セットアップを実行
+./setup.sh
+```
+
+### 2️⃣ MongoDB起動
+```bash
+# MongoDBサーバーを起動
+./start_mongodb.sh
+
+# または手動で起動
+brew services start mongodb-community
+```
+
+### 3️⃣ サンプルデータ作成（初回のみ）
+```bash
+# JSONファイルを作成してMongoDBにアップロード
+.venv/bin/python main.py
+```
+
+### 4️⃣ Webアプリケーション起動
+```bash
+# APIサーバーとフロントエンドを起動
+./start_api.sh
+```
+
+### 5️⃣ ブラウザでアクセス
+- **Web管理画面**: http://localhost:8000
+- **APIドキュメント**: http://localhost:8000/docs
+- **健康状態確認**: http://localhost:8000/api/health
+
+## �🔧 詳細な使用方法
 
 ### 基本的な使用方法
 
@@ -65,7 +151,7 @@ python main.py
 python mongodb_uploader.py
 ```
 
-### カスタム設定での使用
+#### 3. カスタム設定での使用
 
 ```python
 from mongodb_uploader import MongoDBUploader
@@ -89,6 +175,46 @@ if uploader.connect():
 uploader.disconnect()
 ```
 
+## 🔄 サーバー管理
+
+### APIサーバーの起動・停止
+```bash
+# 起動
+./start_api.sh
+
+# 手動起動（開発モード）
+.venv/bin/python -m uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+
+# 停止
+# Ctrl+C でサーバーを停止
+
+# バックグラウンド起動
+nohup .venv/bin/python -m uvicorn api:app --host 0.0.0.0 --port 8000 &
+
+# プロセス確認
+ps aux | grep uvicorn
+
+# プロセス停止
+pkill -f uvicorn
+```
+
+### MongoDB管理
+```bash
+# MongoDB起動
+./start_mongodb.sh
+# または
+brew services start mongodb-community
+
+# MongoDB停止
+brew services stop mongodb-community
+
+# MongoDB状態確認
+brew services list | grep mongodb
+
+# MongoDB接続テスト
+.venv/bin/python test_mongodb_connection.py
+```
+
 ## 🗄️ MongoDB設定
 
 ### デフォルト設定
@@ -102,38 +228,110 @@ uploader.disconnect()
 ```json
 {
   "id": 1,
-  "product": "Laptop",
-  "price": 1200.0,
-  "source_file": "user_1.json",  // 追加：ソースファイル名
-  "uploaded_at": null,           // 追加：アップロード日時（カスタマイズ可能）
-  "_id": ObjectId("...")         // MongoDB自動生成ID
+  "product": "MacBook Pro 14インチ",
+  "price": 298000.0,
+  "source_file": "user_1.json",        // 追加：ソースファイル名
+  "uploaded_at": "2025-10-01T...",     // 追加：アップロード日時
+  "_id": ObjectId("...")               // MongoDB自動生成ID
 }
 ```
 
+### 現在のサンプルデータ
+| ID | 商品名 | 価格 |
+|----|--------|------|
+| 1 | MacBook Pro 14インチ | ¥298,000 |
+| 2 | ワイヤレスマウス（Logitech MX Master 3） | ¥12,800 |
+| 3 | 4K外部モニター 27インチ（Dell UltraSharp） | ¥89,800 |
+| 4 | メカニカルキーボード（HHKB Professional HYBRID） | ¥36,300 |
+| 5 | iPad Pro 12.9インチ（Wi-Fi + Cellular） | ¥158,800 |
+| 6 | iPhone 15 Pro Max 256GB | ¥164,800 |
+| 7 | AirPods Pro（第2世代） | ¥39,800 |
+| 8 | Nintendo Switch（有機ELモデル） | ¥37,980 |
+| 9 | Sony α7R V ミラーレス一眼カメラ | ¥498,000 |
+| 10 | Webカメラ（Logitech C920s HD Pro） | ¥9,800 |
+| 11 | USB-Cハブ（Anker PowerExpand Elite） | ¥15,800 |
+| 12 | 外付けSSD 2TB（Samsung T7 Touch） | ¥32,800 |
+
 ## 🛠️ トラブルシューティング
 
-### MongoDB接続エラー
+### Webアプリケーション関連
+
+#### ブラウザでアクセスできない
+```bash
+# APIサーバーが起動しているか確認
+curl http://localhost:8000/api/health
+
+# プロセス確認
+ps aux | grep uvicorn
+
+# ポート使用状況確認
+lsof -i :8000
+```
+
+#### API接続エラー（❌ API接続エラー）
+```bash
+# APIサーバーを再起動
+./start_api.sh
+```
+
+#### MongoDB未接続エラー（⚠️ MongoDB未接続）
+```bash
+# MongoDB起動確認
+brew services list | grep mongodb
+
+# MongoDB起動
+./start_mongodb.sh
+
+# 接続テスト
+.venv/bin/python test_mongodb_connection.py
+```
+
+### 従来の問題解決
+
+#### MongoDB接続エラー
 - MongoDBサーバーが起動していることを確認
 - 接続文字列が正しいことを確認
 - ファイアウォール設定を確認
 
-### JSONファイルエラー
+#### JSONファイルエラー
 - JSONファイルの形式が正しいことを確認
 - ファイルのエンコーディングがUTF-8であることを確認
 
-### パーミッションエラー
+#### パーミッションエラー
 - スクリプトに実行権限があることを確認
 - ファイルディレクトリへの読み書き権限を確認
 
-## 📊 機能
+#### ポート競合エラー
+```bash
+# ポート8000を使用しているプロセスを確認
+lsof -i :8000
 
-- ✅ 複数のJSONファイルの一括アップロード
-- ✅ エラーハンドリングとログ出力
-- ✅ アップロード結果の詳細レポート
-- ✅ MongoDB接続状態の確認
-- ✅ アップロードされたデータの表示
-- ✅ カスタム設定対応
-- ✅ 自動的なソースファイル名記録
+# プロセスを停止（PIDを確認後）
+kill -9 <PID>
+```
+
+## 🌟 主要機能
+
+### Webアプリケーション
+- ✅ **レスポンシブWebUI**: モバイル・デスクトップ対応
+- ✅ **CRUD操作**: ユーザーデータの作成・読み取り・更新・削除
+- ✅ **リアルタイム監視**: MongoDB接続状態・システム健康状態表示
+- ✅ **インライン編集**: データの即座編集・削除機能  
+- ✅ **モダンデザイン**: グラデーション・アニメーション効果
+
+### バックエンドAPI
+- ✅ **RESTful API**: FastAPI による高性能なWeb API
+- ✅ **自動ドキュメント**: http://localhost:8000/docs でAPI仕様確認
+- ✅ **CORS対応**: フロントエンドからの安全なアクセス
+- ✅ **エラーハンドリング**: 適切なHTTPステータスコード
+- ✅ **健康状態監視**: リアルタイムシステム状態確認
+
+### データ管理
+- ✅ **JSONファイル管理**: 複数ファイルの一括アップロード
+- ✅ **MongoDB統合**: NoSQLデータベースによる柔軟なデータ管理  
+- ✅ **データ検証**: 入力データの形式チェック
+- ✅ **メタデータ追加**: ソースファイル名・アップロード日時の自動記録
+- ✅ **バックアップ機能**: mongoexportによるデータエクスポート
 
 ## 🔄 MongoDB操作
 
@@ -388,7 +586,65 @@ mongosh mongodb://localhost:27017/user_data_db
 ```
 
 使用方法：
+使用方法：
 ```bash
 chmod +x connect_mongodb.sh
 ./connect_mongodb.sh
 ```
+
+## 🚀 起動方法まとめ
+
+### 🏃‍♂️ 最速起動（3ステップ）
+```bash
+# 1. セットアップ（初回のみ）
+./setup.sh
+
+# 2. MongoDB起動
+./start_mongodb.sh
+
+# 3. Webアプリ起動
+./start_api.sh
+```
+**🌐 ブラウザで http://localhost:8000 にアクセス**
+
+### 📝 初回セットアップ時
+```bash
+# 1. 環境構築
+./setup.sh
+
+# 2. MongoDB起動  
+./start_mongodb.sh
+
+# 3. サンプルデータ作成
+.venv/bin/python main.py
+
+# 4. Webアプリ起動
+./start_api.sh
+```
+
+### 🔄 日常的な起動
+```bash
+# MongoDB確認・起動
+./start_mongodb.sh
+
+# Webアプリ起動
+./start_api.sh
+```
+
+### 🛑 停止方法
+```bash
+# APIサーバー停止: Ctrl+C
+
+# MongoDB停止
+brew services stop mongodb-community
+```
+
+### 📋 アクセス先一覧
+- **🏠 Web管理画面**: http://localhost:8000
+- **📚 API ドキュメント**: http://localhost:8000/docs  
+- **💚 健康状態確認**: http://localhost:8000/api/health
+- **🗄️ MongoDB直接操作**: `mongosh mongodb://localhost:27017/user_data_db`
+
+## 📄 ライセンス
+
+MIT License
