@@ -78,7 +78,7 @@ brew services start mongodb-community
 #### Dockerを使用する場合：
 ```bash
 # MongoDBコンテナを起動
-docker run --name mongodb-local -d -p 27017:27017 mongo:latest
+docker run --name mongodb-local -d -p 27017:27017 --rm mongo:latest
 ```
 
 ## 📁 ファイル構成
