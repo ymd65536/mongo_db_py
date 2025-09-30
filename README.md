@@ -1,6 +1,6 @@
-# JSON to MongoDB アップローダー
+# User Data Management System
 
-このプロジェクトは、JSONファイルをMongoDBに格納するためのPythonスクリプトです。
+MongoDBを使用したユーザーデータ管理システムです。バックエンドAPI（FastAPI）とWebフロントエンドを提供します。
 
 ## 📋 必要な要件
 
